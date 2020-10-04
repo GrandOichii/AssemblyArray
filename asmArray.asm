@@ -5,6 +5,8 @@ entry start
 include 'win32a.inc'
 
 section '.data' data readable writable
+        vecAPrompt db 'Vector A: ', 10, 0
+        vecBPrompt db 'Vector B: ', 10, 0
         sizePrompt db 'Enter the size of vector: ', 0
         sizeFail db 'Vector size has to be between 0 and 100', 0
         digitIn db '%d', 0
@@ -12,9 +14,11 @@ section '.data' data readable writable
 
         tmpStack dd ?
         vec_size_a dd 0
+        vec_size_b dd 0
         tmp dd ?
         i dd ?
         vec_a rd 100
+        vec_b rd 100
 
 
 
@@ -23,6 +27,7 @@ section '.code' code readable executable
 start:
         call InputVectorA
         call PrintVectorA
+        call PrintVectorB
         call Finish
 
 
@@ -74,7 +79,14 @@ InputVectorA:
                 push 0
                 call [ExitProcess]
 
+
+
+
+
 PrintVectorA:
+        push vecAPrompt
+        call [printf]
+
         mov [tmpStack], esp
 
         xor ecx, ecx
@@ -101,6 +113,39 @@ PrintVectorA:
                 endPrintVectorA:
                         mov esp, [tmpStack]
                         ret
+
+
+PrintVectorB:
+        push vecBPrompt
+        call [printf]
+
+        mov [tmpStack], esp
+
+        xor ecx, ecx
+        mov ebx, vec_b
+
+        printVecBLoop:
+                mov [tmp], ebx
+                cmp ecx, [vec_size_b]
+                jge endPrintVectorB
+
+                mov [i], ecx
+
+                push dword [ebx]
+                push [i]
+                push elementOut
+                call [printf]
+
+                mov ecx, [i]
+                inc ecx
+                mov ebx, [tmp]
+                add ebx, 4
+                jmp printVecBLoop
+
+                endPrintVectorB:
+                        mov esp, [tmpStack]
+                        ret
+
 
 
 Finish:
