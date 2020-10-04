@@ -10,38 +10,60 @@ section '.data' data readable writable
         digitIn db '%d', 0
 
         tmpStack dd ?
-        vec_size dd ?
+        vec_size_a dd 0
+        tmp dd ?
+        i dd ?
+        vec_a rd 100
 
 
 
 ;--------------------------------------------------------------------------
 section '.code' code readable executable
 start:
-        call InputVector
+        call InputVectorA
         call Finish
 
-InputVector:
+
+InputVectorA:
         mov [tmpStack], esp
         ; input the size of the vector
         push sizePrompt
         call [printf]
 
-        push vec_size
+        push vec_size_a
         push digitIn
         call [scanf]
 
-        mov eax, [vec_size]
+        mov eax, [vec_size_a]
         cmp eax, 0
         jle fail
         cmp eax, 100
         jg fail
 
-        push eax
-        push digitIn
-        call [printf]
+        xor ecx, ecx
+        mov ebx, vec_a
 
-        mov esp, [tmpStack]
-        ret
+        vectorLoop:
+                mov [tmp], ebx
+                cmp ecx, [vec_size_a] ; check if last element
+                jge endInput
+
+                mov [i], ecx
+
+                push ebx
+                push digitIn
+                call [scanf] ; input element
+
+                mov ecx, [i]
+                inc ecx
+                mov ebx, [tmp]
+                add ebx, 4
+                jmp vectorLoop
+
+                endInput:
+                        mov esp, [tmpStack]
+                        ret
+
 
         fail:
                 push sizeFail
