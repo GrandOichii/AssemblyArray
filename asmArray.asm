@@ -5,35 +5,57 @@ entry start
 include 'win32a.inc'
 
 section '.data' data readable writable
-      digitInOut db '%d', 0
-      resString db '%d is %s', 0
-      evenStr db 'even', 0
-      oddStr db 'odd', 0
+        sizePrompt db 'Enter the size of vector: ', 0
+        sizeFail db 'Vector size has to be between 0 and 100', 0
+        digitIn db '%d', 0
 
-      temp dd ?
+        tmpStack dd ?
+        vec_size dd ?
+
 
 
 ;--------------------------------------------------------------------------
 section '.code' code readable executable
 start:
-        push temp
-        push digitInOut
-        call [scanf]
+        call InputVector
+        call Finish
 
-        xor edx, edx
-        mov eax, [temp]
-        mov ebx, 2
-        div ebx
-
-        push eax
-        push digitInOut
+InputVector:
+        mov [tmpStack], esp
+        ; input the size of the vector
+        push sizePrompt
         call [printf]
 
-      ;finish:
+        push vec_size
+        push digitIn
+        call [scanf]
+
+        mov eax, [vec_size]
+        cmp eax, 0
+        jle fail
+        cmp eax, 100
+        jg fail
+
+        push eax
+        push digitIn
+        call [printf]
+
+        mov esp, [tmpStack]
+        ret
+
+        fail:
+                push sizeFail
+                call [printf]
+                call [getch]
+                push 0
+                call [ExitProcess]
+
+
+Finish:
         call [getch]
         push 0
         call [ExitProcess]
-;-------------------------------third act - including HeapApi--------------------------
+
                                                  
 section '.idata' import data readable
     library kernel, 'kernel32.dll',\
