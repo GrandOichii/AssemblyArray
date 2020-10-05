@@ -16,9 +16,13 @@ section '.data' data readable writable
         vec_size_a dd 0
         vec_size_b dd 0
         tmp dd ?
+        tmpForB dd ?
         i dd ?
+        i_b dd ?
         vec_a rd 100
         vec_b rd 100
+
+
 
 
 
@@ -26,6 +30,7 @@ section '.data' data readable writable
 section '.code' code readable executable
 start:
         call InputVectorA
+        call GenerateVectorB
         call PrintVectorA
         call PrintVectorB
         call Finish
@@ -51,11 +56,11 @@ InputVectorA:
         mov ebx, vec_a
 
         vectorLoop:
-                mov [tmp], ebx
+                mov [tmp], ebx        ; move the array to tmp
                 cmp ecx, [vec_size_a] ; check if last element
                 jge endInput
 
-                mov [i], ecx
+                mov [i], ecx          ; keep the index
 
                 push ebx
                 push digitIn
@@ -79,15 +84,61 @@ InputVectorA:
                 push 0
                 call [ExitProcess]
 
+GenerateVectorB:
+        mov [tmpStack], esp
 
+        xor ecx, ecx
+        mov ebx, vec_a
+        mov [tmpForB], vec_a
+
+        vecBLoop:
+                mov [tmp], ebx                ;
+                cmp ecx, [vec_size_a]
+                jge endGeneration
+
+                mov [i], ecx
+
+                ; check if element is even
+                xor edx, edx
+                mov eax, dword [ebx]
+                mov ebx, 2
+                div ebx
+                add [vec_size_b], edx
+                cmp edx, 0
+                je moveNext
+
+
+                mov ebx, [tmp]
+                mov eax, [i_b]
+                mov edx, dword [ebx]
+                mov [vec_b + eax * 4], edx
+                inc eax
+                mov [i_b], eax
+
+                add ebx, 4
+
+
+                jmp moveNext
+
+                moveNext:
+                        mov ecx, [i]
+                        inc ecx
+                        mov ebx, [tmp]
+                        add ebx, 4
+                        jmp vecBLoop
+
+
+
+                endGeneration:
+                        mov esp, [tmpStack]
+                        ret
 
 
 
 PrintVectorA:
+        mov [tmpStack], esp
         push vecAPrompt
         call [printf]
-
-        mov [tmpStack], esp
 
         xor ecx, ecx
         mov ebx, vec_a
@@ -116,10 +167,9 @@ PrintVectorA:
 
 
 PrintVectorB:
+        mov [tmpStack], esp
         push vecBPrompt
         call [printf]
-
-        mov [tmpStack], esp
 
         xor ecx, ecx
         mov ebx, vec_b
